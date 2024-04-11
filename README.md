@@ -5,7 +5,16 @@ To run this locally, use the following commands:
 
 ```bash
 git clone https://github.com/makwanadeepam/stream-hls.git
+```
+
+```bash
 cd stream-hls
+```
+
+```bash
 npm install
+```
+
+```bash
 node server.js
 ```
