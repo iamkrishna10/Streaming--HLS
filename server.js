@@ -10,6 +10,11 @@ const PORT = process.env.PORT || 3000;
 const uploadsDir = path.join(__dirname, 'uploads');
 const streamsDir = path.join(__dirname, 'streams');
 const viewsDir = path.join(__dirname, 'views');
+const jsonFilePath = path.join(__dirname, 'streams.json');
+
+if (!fs.existsSync(jsonFilePath)) {
+    fs.writeFileSync(jsonFilePath, JSON.stringify([]));
+}
 
 app.use(fileUpload());
 
@@ -39,51 +44,61 @@ app.post('/upload', async (req, res) => {
 
         const uploadedFile = req.files.video;
         const filePath = path.join(uploadsDir, uploadedFile.name);
-        uploadedFile.mv(filePath, async (err) => {
-            if (err) {
-                console.error('Error saving uploaded file:', err);
-                return res.status(500).send('Error saving uploaded file.');
-            }
+        await uploadedFile.mv(filePath);
 
-            const streamName = path.basename(uploadedFile.name, path.extname(uploadedFile.name));
-            const streamDirPath = path.join(streamsDir, streamName);
-            const streamPath = path.join(streamDirPath, `${streamName}.m3u8`);
+        const streamName = path.basename(uploadedFile.name, path.extname(uploadedFile.name));
+        const streamDirPath = path.join(streamsDir, streamName);
+        const streamPath = path.join(streamDirPath, `${streamName}.m3u8`);
 
-            if (!fs.existsSync(streamDirPath)) {
-                fs.mkdirSync(streamDirPath, { recursive: true });
-            }
+        if (!fs.existsSync(streamDirPath)) {
+            fs.mkdirSync(streamDirPath, { recursive: true });
+        }
 
-            const ffmpegProcess = spawn('ffmpeg', [
-                '-i', filePath,
-                '-c:v', 'libx264',
-                '-c:a', 'aac',
-                '-hls_time', '3',
-                '-hls_list_size', '0',
-                '-hls_segment_filename', path.join(streamDirPath, `${streamName}_%03d.ts`),
-                '-f', 'hls',
-                streamPath
-            ]);
+        const ffmpegProcess = spawn('ffmpeg', [
+            '-i', filePath,
+            '-c:v', 'libx264',
+            '-c:a', 'aac',
+            '-hls_time', '3',
+            '-hls_list_size', '0',
+            '-hls_segment_filename', path.join(streamDirPath, `${streamName}_%03d.ts`),
+            '-f', 'hls',
+            streamPath
+        ]);
 
-            ffmpegProcess.stderr.on('data', (data) => {
-                console.error(`ffmpeg stderr: ${data}`);
-            });
+        ffmpegProcess.stderr.on('data', (data) => {
+            console.error(`ffmpeg stderr: ${data}`);
+        });
 
-            ffmpegProcess.on('error', (err) => {
-                console.error('Error during ffmpeg execution:', err);
-                res.status(500).send('Error generating HLS stream.');
-            });
+        ffmpegProcess.on('error', (err) => {
+            console.error('Error during ffmpeg execution:', err);
+            return res.status(500).send('Error generating HLS stream.');
+        });
 
-            ffmpegProcess.on('close', () => {
-                console.log('HLS stream generation complete.');
-                const streamUrl = `http://localhost:${PORT}/streams/${streamName}/${streamName}.m3u8`;
-                const streamHlsUrl = `http://localhost:${PORT}/streamhls/${streamName}`;
-                res.send({ streamUrl, streamHlsUrl });
-            });
+        ffmpegProcess.on('close', () => {
+            console.log('HLS stream generation complete.');
+            const streamUrl = `http://localhost:${PORT}/streams/${streamName}/${streamName}.m3u8`;
+            const streamHlsUrl = `http://localhost:${PORT}/streamhls/${streamName}`;
+
+            const data = fs.readFileSync(jsonFilePath);
+            const streamsData = JSON.parse(data);
+            streamsData.push({ streamName, streamUrl, streamHlsUrl });
+            fs.writeFileSync(jsonFilePath, JSON.stringify(streamsData));
+
+            res.redirect(streamHlsUrl);
         });
     } catch (error) {
         console.error('Error handling file upload:', error);
         res.status(500).send('Internal Server Error');
     }
+});
+
+app.get('/allstreams', (req, res) => {
+    res.sendFile(path.join(viewsDir, 'allstreams.html'));
+});
+
+app.get('/api/streams', (req, res) => {
+    const data = fs.readFileSync(jsonFilePath);
+    res.json(JSON.parse(data));
 });
 
 app.get('/clean', (req, res) => {
@@ -95,14 +110,16 @@ app.get('/clean', (req, res) => {
 
         files.forEach(file => {
             const filePath = path.join(streamsDir, file);
-            fs.unlink(filePath, (err) => {
+            fs.unlink(filePath, err => {
                 if (err) {
                     console.error(`Error deleting file ${filePath}:`, err);
                 }
             });
         });
 
-        res.json({ data: "Cleanup Complete!" });
+        fs.writeFileSync(jsonFilePath, JSON.stringify([]));
+
+        res.json({ data: "Cleanup complete!" });
     });
 });
 

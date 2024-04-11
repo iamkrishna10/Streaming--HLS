@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Streams</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #020817;
+            color: #cbd5e0;
+        }
+
+        th {
+            background-color: #2b6cb0;
+            color: white;
+        }
+
+        a {
+            color: #2b6cb0;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-center text-3xl font-bold mb-8">All Streams</h1>
+        <div class="overflow-x-auto">
+            <table class="w-full table-fixed border-collapse border border-gray-700">
+                <thead>
+                    <tr>
+                        <th class="p-2 border border-gray-700">Stream Name</th>
+                        <th class="p-2 border border-gray-700">Stream URL</th>
+                        <th class="p-2 border border-gray-700">HLS URL</th>
+                    </tr>
+                </thead>
+                <tbody id="streams-table">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function fetchStreamsData() {
+            const response = await fetch('/api/streams');
+            const data = await response.json();
+            const tableBody = document.getElementById('streams-table');
+            data.forEach(stream => {
+                const row = document.createElement('tr');
+                row.classList.add("border", "border-gray-700");
+                
+                const streamNameCell = document.createElement('td');
+                streamNameCell.classList.add("p-2", "border", "border-gray-700");
+                streamNameCell.textContent = stream.streamName;
+                
+                const streamUrlCell = document.createElement('td');
+                streamUrlCell.classList.add("p-2", "border", "border-gray-700");
+                streamUrlCell.innerHTML = `<a href="${stream.streamUrl}" target="_blank">Stream</a>`;
+                
+                const streamHlsUrlCell = document.createElement('td');
+                streamHlsUrlCell.classList.add("p-2", "border", "border-gray-700");
+                streamHlsUrlCell.innerHTML = `<a href="${stream.streamHlsUrl}" target="_blank">Stream</a>`;
+                
+                row.appendChild(streamNameCell);
+                row.appendChild(streamUrlCell);
+                row.appendChild(streamHlsUrlCell);
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        fetchStreamsData();
+    </script>
+</body>
+
+</html>
