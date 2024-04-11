@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Stream</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: rgb(2, 8, 23);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: #cbd5e0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .form-label {
+            color: #cbd5e0;
+        }
+
+        .file-label {
+            background-color: #2b6cb0;
+        }
+
+        .file-label:hover,
+        .file-label:focus {
+            background-color: #2c5282;
+        }
+
+        .upload-btn {
+            background-color: #2b6cb0;
+        }
+
+        .upload-btn:hover,
+        .upload-btn:focus {
+            background-color: #2c5282;
+        }
+
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(50px);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-center text-3xl font-bold mb-8">Create a Stream</h1>
+
+        <form action="/upload" method="post" enctype="multipart/form-data" class="form-container">
+            <label for="video" class="form-label block mb-2">Choose a video:</label>
+            <div class="flex items-center space-x-4">
+                <input type="file" name="video" accept="video/*" id="video" required class="hidden">
+                <label for="video" class="file-label cursor-pointer flex items-center justify-center bg-indigo-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 5a1 1 0 00-1.414 1.414L3.414 10l6.586 6.586a1 1 0 001.414-1.414L11.414 10l5.586-5.586a1 1 0 00-1.414-1.414L10 5z" clip-rule="evenodd" />
+                        <path d="M9 7a1 1 0 000 2h4a1 1 0 000-2H9z" />
+                    </svg>
+                    Browse
+                </label>
+                <span id="selected-file" class="text-sm text-gray-400">No file chosen</span>
+            </div>
+
+            <button type="submit" class="upload-btn w-full mt-6 bg-indigo-600 text-white font-bold py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Upload</button>
+        </form>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('video');
+        const selectedFile = document.getElementById('selected-file');
+
+        fileInput.addEventListener('change', (e) => {
+            const fileName = e.target.files[0] ? e.target.files[0].name : 'No file chosen';
+            selectedFile.textContent
+            
+            
+            = fileName;
+        });
+    </script>
+</body>
+
+</html>
