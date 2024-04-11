@@ -18,3 +18,4 @@ npm install
 ```bash
 node server.js
 ```
+Aditionally, you must have FFmpeg installed.
