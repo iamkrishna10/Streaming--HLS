@@ -16,6 +16,12 @@ if (!fs.existsSync(jsonFilePath)) {
     fs.writeFileSync(jsonFilePath, JSON.stringify([]));
 }
 
+[uploadsDir, streamsDir, viewsDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
+
 app.use(fileUpload());
 
 app.get('/', (req, res) => {
@@ -75,7 +81,6 @@ app.post('/upload', async (req, res) => {
         });
 
         ffmpegProcess.on('close', () => {
-            console.log('HLS stream generation complete.');
             const streamUrl = `http://localhost:${PORT}/streams/${streamName}/${streamName}.m3u8`;
             const streamHlsUrl = `http://localhost:${PORT}/streamhls/${streamName}`;
 
